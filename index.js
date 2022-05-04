@@ -14,7 +14,6 @@ const promise = mongoClient.connect().then(() => {
   db = mongoClient.db(process.env.DB_NAME);
 });
 
-//FIX ME - Fazer a verificação se já existe email registrado
 app.post("/cadastrar", async (req, res) => {
   const body = req.body;
   const schema = joi.object({
@@ -26,28 +25,38 @@ app.post("/cadastrar", async (req, res) => {
   const { value, error } = schema.validate(body, { abortEarly: false });
 
   if (error) {
-    const errorsDetails = error.details.map(object => {return object.message})
+    const errorsDetails = error.details.map((object) => {
+      return object.message;
+    });
     res.status(400).send(errorsDetails);
     return;
-  } else {
-    try {
-      await db.collection("usuarios").insertOne({
-        nome: body.nome,
-        email: body.email,
-        senha: body.senha,
-        confirme: body.confirme
-      })
-      res.sendStatus(201);
-    } catch {
-      res.sendStatus(500)
+  }
+
+  try {
+    const usuarios = await db.collection("usuarios").find({}).toArray();
+    const usuarioExistente = usuarios.find(
+      (user) => user.email === body.email
+    );
+    if (usuarioExistente) {
+      res.status(409).send("Usuário já existente");
+      return
     }
+    await db.collection("usuarios").insertOne({
+      nome: body.nome,
+      email: body.email,
+      senha: body.senha,
+      confirme: body.confirme,
+    });
+    res.sendStatus(201);
+  } catch {
+    res.sendStatus(500);
   }
 });
 
-//REMINDER - Provavelmente, futuramente será necessarios fazer o get das entradas/saidas ao logar 
+//REMINDER - Provavelmente, futuramente será necessarios fazer o get das entradas/saidas ao logar
 app.post("/logar", async (req, res) => {
-  const body = req.body
-  
+  const body = req.body;
+
   const schema = joi.object({
     email: joi.string().email().required(),
     senha: joi.any().required(),
@@ -55,7 +64,9 @@ app.post("/logar", async (req, res) => {
   const { value, error } = schema.validate(body, { abortEarly: false });
 
   if (error) {
-    const errorsDetails = error.details.map(object => {return object.message})
+    const errorsDetails = error.details.map((object) => {
+      return object.message;
+    });
     res.status(400).send(errorsDetails);
     return;
   } else {
@@ -63,16 +74,16 @@ app.post("/logar", async (req, res) => {
       const usuario = await db.collection("usuarios").findOne({
         email: body.email,
         senha: body.senha,
-      })
-      if(!usuario) {
-        res.sendStatus(404)
-        return
+      });
+      if (!usuario) {
+        res.sendStatus(404);
+        return;
       }
       res.sendStatus(200);
     } catch {
-      res.sendStatus(500)
+      res.sendStatus(500);
     }
   }
-})
+});
 
 app.listen(5000, console.log("O servidor foi ligado! :)"));
