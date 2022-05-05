@@ -1,20 +1,8 @@
-import "dotenv/config";
-import express from "express";
-import cors from "cors";
-import { MongoClient } from "mongodb";
-import joi from "joi";
+import joi from 'joi'
+import db from '../db.js'
+import bcrypt from 'bcrypt'
 
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-const mongoClient = new MongoClient(process.env.MONGO_URL);
-let db;
-const promise = mongoClient.connect().then(() => {
-  db = mongoClient.db(process.env.DB_NAME);
-});
-
-app.post("/cadastrar", async (req, res) => {
+export async function postCadastrar(req, res) {
   const body = req.body;
   const schema = joi.object({
     nome: joi.string().alphanum().min(3).max(30).required(),
@@ -28,8 +16,7 @@ app.post("/cadastrar", async (req, res) => {
     const errorsDetails = error.details.map((object) => {
       return object.message;
     });
-    res.status(400).send(errorsDetails);
-    return;
+    return res.status(400).send(errorsDetails);
   }
 
   try {
@@ -38,23 +25,22 @@ app.post("/cadastrar", async (req, res) => {
       (user) => user.email === body.email
     );
     if (usuarioExistente) {
-      res.status(409).send("Usuário já existente");
-      return
+      return res.status(409).send("Usuário já existente");
     }
+    const senhaCriptografada = bcrypt.hashSync(body.senha, 10);
     await db.collection("usuarios").insertOne({
       nome: body.nome,
       email: body.email,
-      senha: body.senha,
+      senha: senhaCriptografada,
       confirme: body.confirme,
     });
     res.sendStatus(201);
-  } catch {
-    res.sendStatus(500);
+  } catch(e) {
+    res.status(500).send(e);
   }
-});
+}
 
-//REMINDER - Provavelmente, futuramente será necessarios fazer o get das entradas/saidas ao logar
-app.post("/logar", async (req, res) => {
+export async function postLogar(req, res) {
   const body = req.body;
 
   const schema = joi.object({
@@ -67,23 +53,17 @@ app.post("/logar", async (req, res) => {
     const errorsDetails = error.details.map((object) => {
       return object.message;
     });
-    res.status(400).send(errorsDetails);
-    return;
+    return res.status(400).send(errorsDetails);
   } else {
     try {
-      const usuario = await db.collection("usuarios").findOne({
-        email: body.email,
-        senha: body.senha,
-      });
-      if (!usuario) {
-        res.sendStatus(404);
-        return;
+      const usuario = await db.collection("usuarios").findOne({email: body.email});
+      const senhaDescriptografada = bcrypt.compareSync(body.senha, usuario.senha)
+      if (!usuario || !senhaDescriptografada) {
+        return res.sendStatus(404);
       }
       res.sendStatus(200);
     } catch {
       res.sendStatus(500);
     }
   }
-});
-
-app.listen(5000, console.log("O servidor foi ligado! :)"));
+}
