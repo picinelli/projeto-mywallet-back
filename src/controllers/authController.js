@@ -1,6 +1,9 @@
-import joi from 'joi'
-import db from '../db.js'
-import bcrypt from 'bcrypt'
+import joi from "joi";
+import db from "../db.js";
+import bcrypt from "bcrypt";
+import { v4 as uuid } from "uuid";
+
+const token = uuid();
 
 export async function postCadastrar(req, res) {
   const body = req.body;
@@ -21,9 +24,7 @@ export async function postCadastrar(req, res) {
 
   try {
     const usuarios = await db.collection("usuarios").find({}).toArray();
-    const usuarioExistente = usuarios.find(
-      (user) => user.email === body.email
-    );
+    const usuarioExistente = usuarios.find((user) => user.email === body.email);
     if (usuarioExistente) {
       return res.status(409).send("Usuário já existente");
     }
@@ -35,7 +36,7 @@ export async function postCadastrar(req, res) {
       confirme: body.confirme,
     });
     res.sendStatus(201);
-  } catch(e) {
+  } catch (e) {
     res.status(500).send(e);
   }
 }
@@ -56,12 +57,18 @@ export async function postLogar(req, res) {
     return res.status(400).send(errorsDetails);
   } else {
     try {
-      const usuario = await db.collection("usuarios").findOne({email: body.email});
-      const senhaDescriptografada = bcrypt.compareSync(body.senha, usuario.senha)
+      const usuario = await db
+        .collection("usuarios")
+        .findOne({ email: body.email });
+      const senhaDescriptografada = bcrypt.compareSync(
+        body.senha,
+        usuario.senha
+      );
       if (!usuario || !senhaDescriptografada) {
         return res.sendStatus(404);
       }
-      res.sendStatus(200);
+      await db.collection("sessoes").insertOne({ userId: usuario._id, token });
+      res.status(200).send(token);
     } catch {
       res.sendStatus(500);
     }
