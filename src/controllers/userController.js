@@ -1,6 +1,27 @@
 import db from "../db.js";
 import { ObjectId } from "mongodb";
 
+export async function getRegistros(req, res) {
+  console.log(req.headers)
+  const { authorization } = req.headers;
+  if (!authorization) return res.status(401).send("Token nao encontrado");
+  const token = authorization.replace("Bearer", "").trim();
+
+  try {
+    const session = await db.collection("sessoes").findOne({ token });
+    if (!session) return res.status(401).send("Sessao nao encontrada");
+    const usuario = await db
+      .collection("usuarios")
+      .findOne({ _id: new ObjectId(session.userId) });
+    if (!usuario) return res.status(401).send("Usuario nao encontrado");
+
+    return res.send(usuario.registros)
+  } catch (e) {
+    console.log(e, "erro no catch do getRegistros");
+    res.sendStatus(500);
+  }
+}
+
 export async function postRegistro(req, res) {
   const body = { ...req.body, date: Date.now() };
   const { authorization } = req.headers;
