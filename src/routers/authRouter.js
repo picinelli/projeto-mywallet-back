@@ -1,10 +1,10 @@
 import { Router } from "express";
 import { postCadastrar, postLogar } from "../controllers/authController.js";
+import { validateCadastro, validateLogin } from "../middlewares/schemaJoiValidations.js";
 
 const authRouter = Router();
 
-authRouter.post("/cadastrar", postCadastrar);
-//REMINDER - Será necessario fazer o get das entradas/saidas apos logar
-authRouter.post("/logar", postLogar);
+authRouter.post("/cadastrar", validateCadastro, postCadastrar);
+authRouter.post("/logar", validateLogin, postLogar);
 
-export default authRouter
+export default authRouter;
