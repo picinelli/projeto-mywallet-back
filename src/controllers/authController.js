@@ -2,7 +2,7 @@ import db from "../db.js";
 import bcrypt from "bcrypt";
 import { v4 as uuid } from "uuid";
 
-const token = uuid();
+
 
 export async function postCadastrar(req, res) {
   const body = req.body;
@@ -23,7 +23,7 @@ export async function postCadastrar(req, res) {
 
 export async function postLogar(req, res) {
   const body = req.body;
-
+  const token = uuid();
   try {
     const usuario = await db
       .collection("usuarios")
