@@ -22,6 +22,35 @@
 
 ## OBS: Esse é um projeto FULL-STACK, para ver o repositório do FRONT-END, <a href="https://github.com/picinelli/projeto-mywallet-front"><strong>Clique Aqui»</strong></a>
 
+# Requisitos
+
+- Geral
+    - [x]  Versionamento usando Git é obrigatório, crie um **repositório público** no seu perfil do GitHub
+    - [x]  Faça commits a cada funcionalidade implementada
+    - [x]  Separe o projeto em dois projetos diferentes: um para o *front-end* e outro pro *back-end*.
+    - [x]  Implemente o *front-end* utilizando HTML, CSS, JS e **React** e as tecnologias que utilizamos até aqui, conforme o necessário para atender o *layout*.
+
+- POST Login (rota `/`)
+    - [x]  Deve ser recebido o email e senha e fazer a validação dos dados através de schemas
+    - [x]  Deve ser feito a verificação se a senha criptografada está correta
+    - [x]  Deve ser enviado para o usuário um token para navegação segura através da biblioteca uuid
+
+- POST Cadastro (rota `/cadastro`)
+    - [x]  Deve ser recebido o email e senha e fazer a validação dos dados através de schemas
+    - [x]  Deve ser feito uma verificação caso haja email cadastrado
+    - [x]  A senha deverá ser criptografada através da biblioteca bcrypt
+        
+- GET Entradas (rota `/inicio`)
+    - [x]  Deverá enviar para o usuário um array com todas as suas entradas e saídas
+
+# Bônus (opcional)
+
+- DELETE Entradas (rota `/inicio`)
+    - [x]  Deverá remover somente a entrada/saida selecionada pelo usuário no Front-End.
+
+- PUT Entradas/Saidas (rota  `/nova-entrada` e `/nova-saida`)
+    - [x]  Deverá alterar a entrada/saida selecionada pelo usuário no Front-End.
+
 
 ### Tecnologias Utilizadas
 
